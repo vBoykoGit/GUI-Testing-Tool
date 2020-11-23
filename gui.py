@@ -13,20 +13,16 @@ import cv2
 import pytesseract
 from pytesseract import Output
 import numpy as np 
+import time
 
 pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
 def open_file():
     """Открываем файл для редактирования"""
-    filepath = askopenfilename(
-        filetypes=[("Python file", "*.py")]
-    )
+    filepath = askopenfilename(filetypes=[("Python file", "*.py")])
     if not filepath:
         return
-   # with open(filepath, "r") as input_file:
- #       text = input_file.read()
-#        txt_edit.insert(tk.END, text)
-
+    
 def browse_button():
     global folder_path
     global filesList
@@ -37,7 +33,7 @@ def browse_button():
     filesList.set(glob.glob(folder_path.get() + "/*.py"))
     print(glob.glob(folder_path.get() + "/*.py"))
 
-def moveToWord():
+def moveToWord(word):
     img = pyautogui.screenshot()
     d = pytesseract.image_to_data(img, output_type=Output.DICT)
     n_boxes = len(d['level'])
@@ -50,20 +46,49 @@ def moveToWord():
 #            print(d['text'][i])
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
             img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
-            if d['text'][i] == "Stop":
+            if d['text'][i] == word:
                 print(x * widthCoef, y * heightCoef)
                 moveMouse(x * widthCoef, y * heightCoef)
 
     #cv2.imshow('img', img)
     #cv2.waitKey(0)
 
+def clickAtWord(word):
+    img = pyautogui.screenshot()
+    d = pytesseract.image_to_data(img, output_type=Output.DICT)
+    n_boxes = len(d['level'])
+    imgW, imgH = img.size
+    screenW, screenH = pyautogui.size()
+    widthCoef = screenW / imgW
+    heightCoef = screenH / imgH
+    for i in range(n_boxes):
+        if int(d['conf'][i]) > 60:
+#            print(d['text'][i])
+            (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
+            img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
+            if d['text'][i] == word:
+                time.sleep(1)
+                print(x * widthCoef, y * heightCoef)
+                moveMouse(x * widthCoef, y * heightCoef)
+
+    #cv2.imshow('img', img)
+    #cv2.waitKey(0)
+    
 def moveMouse(x, y):
     """
     Move mouse to coordinates
     """
     print(x, y)
-    pyautogui.moveTo(x, y)
+    pyautogui.moveTo(x, y, 0.3)
 
+def mouseClick(x, y):
+    """
+    Click mouse to coordinates
+    """
+    print(x, y)
+    pyautogui.moveTo(x, y, 0.3)
+    pyautogui.click(x = x, y = y)
+    
 def start():
     """
     start
@@ -74,7 +99,14 @@ def start():
         lines = file1.readlines() 
         count = 0
         for line in lines: 
-            print("Line{}: {}".format(count, line.strip())) 
+            print("Line{}: {}".format(count, line.strip()))
+            exec(line, {'moveToWord': moveToWord, 'clickAtWord': clickAtWord}) 
+            
+def stop():
+    """
+    stop
+    """
+    print("stopped")
 
 window = tk.Tk()
 filesList = StringVar()
@@ -84,7 +116,7 @@ folder_path.set("Choose the folder with tests")
 
 browseButton = tk.Button(text=folder_path.get(), width=55, height=5, bg="blue", fg="green", command=browse_button)
 startButton = tk.Button(text="Start", width=5, height=2, bg="blue", fg="red", command=start)
-stopButton = tk.Button(text="Stop",width=5,height=2,bg="blue",fg="red", command=browse_button)
+stopButton = tk.Button(text="Stop",width=5,height=2,bg="blue",fg="red", command=stop)
 
 myframe = tk.Frame(window)
 myentry = tk.Entry(myframe, textvariable = filesList, state='readonly')
