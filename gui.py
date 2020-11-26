@@ -6,16 +6,15 @@ import pyautogui
 import pytesseract
 from pytesseract import Output
 import cv2
-import tesserocr
 from PIL import Image
-from tesserocr import PyTessBaseAPI, RIL
 import cv2
 import pytesseract
 from pytesseract import Output
 import numpy as np 
 import time
 
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
+pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+#pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
 def open_file():
     """Открываем файл для редактирования"""
@@ -69,7 +68,7 @@ def clickAtWord(word):
             if d['text'][i] == word:
                 time.sleep(1)
                 print(x * widthCoef, y * heightCoef)
-                moveMouse(x * widthCoef, y * heightCoef)
+                mouseClick(x * widthCoef, y * heightCoef)
 
     #cv2.imshow('img', img)
     #cv2.waitKey(0)

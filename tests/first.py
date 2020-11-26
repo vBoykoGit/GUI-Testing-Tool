@@ -1,1 +1,1 @@
-button("Go")
+clickAtWord("Go")
