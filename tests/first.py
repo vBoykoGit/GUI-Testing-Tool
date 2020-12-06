@@ -1,3 +1,3 @@
 clickAtWord("Email or phone")
-#typeString("123")
-#moveToWord("Window")
+typeString("123")
+clickAtWord("Stop")

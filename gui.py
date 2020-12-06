@@ -62,61 +62,19 @@ def stop():
 
 
 def moveToWord(word):
-    img = pyautogui.screenshot()
-    d = pytesseract.image_to_data(img, output_type=Output.DICT)
-    n_boxes = len(d['level'])
-    imgW, imgH = img.size
-    screenW, screenH = pyautogui.size()
-    widthCoef = screenW / imgW
-    heightCoef = screenH / imgH
-    for i in range(n_boxes):
-        if int(d['conf'][i]) > 60:
-            (x, y, w, h) = (d['left'][i], d['top']
-                            [i], d['width'][i], d['height'][i])
-            img = cv2.rectangle(np.array(img), (x, y),
-                                (x + w, y + h), (0, 255, 0), 2)
-            if d['text'][i] == word:
-                print(x * widthCoef, y * heightCoef)
-                moveMouse(x * widthCoef, y * heightCoef)
+    (x, y) = getScreenWordCoordinates(word)
+    moveMouse(x, y)
 
 
 def clickAtWord(word):
-    img = pyautogui.screenshot()
-    imageData = pytesseract.image_to_data(img, output_type=Output.DICT)
-    n_boxes = len(imageData['level'])
-    imgW, imgH = img.size
-    screenW, screenH = pyautogui.size()
-    widthCoef = screenW / imgW
-    heightCoef = screenH / imgH
-    filteredWordNums = imageData['word_num']
-    filteredWords = imageData['text']
-    wordsArray = word.split(' ')
-    wordsDict = dict((w, False) for w in wordsArray)
-    for i in range(len(filteredWordNums)):
-        if (filteredWordNums[i] - 1 < len(wordsArray)) and (wordsArray[filteredWordNums[i] - 1] == filteredWords[i]):
-            wordsDict[filteredWords[i]] = True
-        else:
-            print(wordsDict)
-            isAllTrue = all(k == True for k in wordsDict.values())
-            print(isAllTrue)
-            if isAllTrue:
-                (x, y, w, h) = (imageData['left'][i-1], imageData['top']
-                                [i-1], imageData['width'][i-1], imageData['height'][i-1])
-                print(x * widthCoef, y * heightCoef)
-                #img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
-                #cv2.imshow('img', img)
-                # cv2.waitKey(0)
-                mouseClick(x * widthCoef, y * heightCoef)
-                break
-            else:
-                for key in wordsDict:
-                    wordsDict[key] = False
+    (x, y) = getScreenWordCoordinates(word)
+    mouseClick(x, y)
 
 
 def getScreenWordCoordinates(word):
     img = pyautogui.screenshot()
     imageData = pytesseract.image_to_data(img, output_type=Output.DICT)
-    n_boxes = len(imageData['level'])
+    print(imageData)
     imgW, imgH = img.size
     screenW, screenH = pyautogui.size()
     widthCoef = screenW / imgW
