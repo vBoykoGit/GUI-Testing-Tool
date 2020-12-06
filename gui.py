@@ -13,8 +13,8 @@ from pytesseract import Output
 import numpy as np
 import time
 
-# pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
+pytesseract.pytesseract.tesseract_cmd = "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+#pytesseract.pytesseract.tesseract_cmd = r'/usr/local/Cellar/tesseract/4.1.1/bin/tesseract'
 
 # UI
 
@@ -71,7 +71,6 @@ def moveToWord(word):
     heightCoef = screenH / imgH
     for i in range(n_boxes):
         if int(d['conf'][i]) > 60:
-            #rint(d['text'][i])
             (x, y, w, h) = (d['left'][i], d['top']
                             [i], d['width'][i], d['height'][i])
             img = cv2.rectangle(np.array(img), (x, y),
@@ -80,58 +79,71 @@ def moveToWord(word):
                 print(x * widthCoef, y * heightCoef)
                 moveMouse(x * widthCoef, y * heightCoef)
 
-    # cv2.imshow('img', img)
-    # cv2.waitKey(0)
-
 
 def clickAtWord(word):
     img = pyautogui.screenshot()
-    d = pytesseract.image_to_data(img, output_type=Output.DICT)
-    n_boxes = len(d['level'])
-    print(d)
+    imageData = pytesseract.image_to_data(img, output_type=Output.DICT)
+    n_boxes = len(imageData['level'])
     imgW, imgH = img.size
     screenW, screenH = pyautogui.size()
     widthCoef = screenW / imgW
     heightCoef = screenH / imgH
-    for i in range(n_boxes):
-        if int(d['conf'][i]) > 60:
-            if d['block_num'][i] == 13:
-                print(d['text'][i])
-            (x, y, w, h) = (d['left'][i], d['top']
-                            [i], d['width'][i], d['height'][i])
-            img = cv2.rectangle(np.array(img), (x, y),
-                                (x + w, y + h), (0, 255, 0), 2)
-            if d['text'][i] == word:
-                time.sleep(1)
+    filteredWordNums = imageData['word_num']
+    filteredWords = imageData['text']
+    wordsArray = word.split(' ')
+    wordsDict = dict((w, False) for w in wordsArray)
+    for i in range(len(filteredWordNums)):
+        if (filteredWordNums[i] - 1 < len(wordsArray)) and (wordsArray[filteredWordNums[i] - 1] == filteredWords[i]):
+            wordsDict[filteredWords[i]] = True
+        else:
+            print(wordsDict)
+            isAllTrue = all(k == True for k in wordsDict.values())
+            print(isAllTrue)
+            if isAllTrue:
+                (x, y, w, h) = (imageData['left'][i-1], imageData['top']
+                                [i-1], imageData['width'][i-1], imageData['height'][i-1])
                 print(x * widthCoef, y * heightCoef)
+                #img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
+                #cv2.imshow('img', img)
+                # cv2.waitKey(0)
                 mouseClick(x * widthCoef, y * heightCoef)
-
-    # cv2.imshow('img', img)
-    # cv2.waitKey(0)
+                break
+            else:
+                for key in wordsDict:
+                    wordsDict[key] = False
 
 
 def getScreenWordCoordinates(word):
-    """
-    return given word coord
-    """
     img = pyautogui.screenshot()
-    d = pytesseract.image_to_data(img, output_type=Output.DICT)
-    n_boxes = len(d['level'])
+    imageData = pytesseract.image_to_data(img, output_type=Output.DICT)
+    n_boxes = len(imageData['level'])
     imgW, imgH = img.size
     screenW, screenH = pyautogui.size()
     widthCoef = screenW / imgW
     heightCoef = screenH / imgH
-    for i in range(n_boxes):
-        if int(d['conf'][i]) > 60:
-            #            print(d['text'][i])
-            (x, y, w, h) = (d['left'][i], d['top']
-                            [i], d['width'][i], d['height'][i])
-            img = cv2.rectangle(np.array(img), (x, y),
-                                (x + w, y + h), (0, 255, 0), 2)
-            if d['text'][i] == word:
-                time.sleep(1)
+    filteredWordNums = imageData['word_num']
+    filteredWords = imageData['text']
+    wordsArray = word.split(' ')
+    wordsDict = dict((w, False) for w in wordsArray)
+    for i in range(len(filteredWordNums)):
+        if (filteredWordNums[i] - 1 < len(wordsArray)) and (wordsArray[filteredWordNums[i] - 1] == filteredWords[i]):
+            wordsDict[filteredWords[i]] = True
+        else:
+            print(wordsDict)
+            isAllTrue = all(k == True for k in wordsDict.values())
+            print(isAllTrue)
+            if isAllTrue:
+                (x, y, w, h) = (imageData['left'][i-1], imageData['top']
+                                [i-1], imageData['width'][i-1], imageData['height'][i-1])
                 print(x * widthCoef, y * heightCoef)
-                return (x * widthCoef, y * heightCoef)
+                #img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
+                #cv2.imshow('img', img)
+                # cv2.waitKey(0)
+                mouseClick(x * widthCoef, y * heightCoef)
+                break
+            else:
+                for key in wordsDict:
+                    wordsDict[key] = False
 
 # User actions
 
@@ -165,11 +177,10 @@ window = tk.Tk()
 filesList = StringVar()
 filesList.set("No files")
 folder_path = StringVar()
-folder_path.set("~/Git/GUI-Testing-Tool/tests")
-#folder_path.set("Choose the folder with tests")
+folder_path.set("Choose the folder with tests")
 
-browseButton = tk.Button(text=folder_path.get(
-), width=55, height=5, bg="blue", fg="green", command=browse_button)
+browseButton = tk.Button(text=folder_path.get(), width=55,
+                         height=5, bg="blue", fg="green", command=browse_button)
 startButton = tk.Button(text="Start", width=5, height=2,
                         bg="blue", fg="red", command=start)
 stopButton = tk.Button(text="Stop", width=5, height=2,
