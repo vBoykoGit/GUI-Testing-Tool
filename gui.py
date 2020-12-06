@@ -96,9 +96,8 @@ def getScreenWordCoordinates(word):
                 print(x * widthCoef, y * heightCoef)
                 #img = cv2.rectangle(np.array(img), (x, y), (x + w, y + h), (0, 255, 0), 2)
                 #cv2.imshow('img', img)
-                # cv2.waitKey(0)
-                mouseClick(x * widthCoef, y * heightCoef)
-                break
+                #cv2.waitKey(0)
+                return (x * widthCoef, y * heightCoef)
             else:
                 for key in wordsDict:
                     wordsDict[key] = False
